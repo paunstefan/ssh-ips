@@ -16,8 +16,8 @@ class TestRegex(unittest.TestCase):
 
 
 	def test_ipv4_2(self):
-		line = "Nov 13 16:43:18 ubuntu sshd[213]: message repeated 2 times [Failed password for root from 192.168.93.2 port 35343 ssh2]"
-		self.assertEqual(ssh_ipsd.check_regex(line), (2, 4, '192.168.93.2'))
+		line = "Nov 23 18:57:30 Skylab-L sshd[15746]: message repeated 2 times: [ Failed password for paunstefan from 192.168.100.22 port 41212 ssh2]"
+		self.assertEqual(ssh_ipsd.check_regex(line), (2, 4, '192.168.100.22'))
 
 	def test_ipv6_2(self):
 		line = "Nov 13 16:43:18 ubuntu sshd[213]: message repeated 2 times [Failed password for root from 2001:db8::acab:2 port 35343 ssh2]"
