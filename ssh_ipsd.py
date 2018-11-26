@@ -2,7 +2,7 @@
 
 """
 import re
-import os
+import sys
 import time
 import subprocess
 import ipaddress
@@ -16,21 +16,125 @@ logging.basicConfig(level=logging.DEBUG)		# Comment when not needed
 ATTEMPTS = 3
 ATTEMPTS_TIMEOUT = 60
 AUTH_LOG_FILE = '/var/log/auth.log'
-SAVED_STATE_FILE = 'saved_state.json'
+CONFIG_FILE = 'files/config.json'
+SAVED_STATE_FILE = 'files/saved_state.json'
 BANNED_ADDRESSES = dict()
-LOG_FILE = ''
 FIREWALL = 'iptables'
 BAN_TIME = 60
 SEND_EMAIL = False
-EMAIL_ADDRESS = ''
-TRUSTED_NETWORKS = ''
+FROM_EMAIL = ''
+FROM_EMAIL_PASSWORD = ''
+SMTP_SERVER = ''
+SMTP_PORT = 0
+TO_EMAIL = ''
+TRUSTED_NOTIFICATION = 0
+TRUSTED_NETWORKS = list()
 
 
 def read_config():
 	"""
 	Reads the running constants from the configuration file.
 	"""
-	pass
+	global ATTEMPTS
+	global ATTEMPTS_TIMEOUT
+	global AUTH_LOG_FILE
+	global SAVED_STATE_FILE
+	global FIREWALL
+	global BAN_TIME
+	global SEND_EMAIL
+	global FROM_EMAIL
+	global FROM_EMAIL_PASSWORD
+	global TO_EMAIL
+	global SMTP_SERVER
+	global SMTP_PORT
+	global TRUSTED_NOTIFICATION
+	global TRUSTED_NETWORKS
+
+	try:
+		with open(CONFIG_FILE, "r") as f:
+			data = json.load(f)
+	except ValueError:
+		#log
+		sys.exit()
+
+	try:
+		if data['attempts'] > 0 and isinstance(data['attempts'], int):
+			ATTEMPTS = data['attempts']
+		else:
+			#log here
+			sys.exit()
+
+		if data['attempts_timeout'] > 0 and isinstance(data['attempts_timeout'], int):
+			ATTEMPTS_TIMEOUT = data['attempts_timeout']
+		else:
+			#log here
+			sys.exit()
+
+		if data['auth_log_file'] != "" and isinstance(data['auth_log_file'], str):
+			AUTH_LOG_FILE = data['auth_log_file']
+		else:
+			#log here
+			sys.exit()
+
+		if data['saved_state_file'] != "" and isinstance(data['saved_state_file'], str):
+			SAVED_STATE_FILE = data['saved_state_file']
+		else:
+			#log here
+			sys.exit()
+
+		if data['firewall'] != "" and isinstance(data['firewall'], str):
+			FIREWALL = data['firewall']
+		else:
+			#log here
+			sys.exit()
+
+		if data['ban_time'] > 0 and isinstance(data['ban_time'], int):
+			BAN_TIME = data['ban_time']
+		else:
+			#log here
+			sys.exit()
+
+		if data['send_email'] == 1:
+			if data['from_email'] != "" and isinstance(data['from_email'], str):
+				FROM_EMAIL = data['from_email']
+			else:
+				# log here
+				sys.exit()
+
+			if data['from_email_password'] != "" and isinstance(data['from_email_password'], str):
+				FROM_EMAIL_PASSWORD = data['from_email_password']
+			else:
+				# log here
+				sys.exit()
+
+			if data['to_email'] != "" and isinstance(data['to_email'], str):
+				TO_EMAIL = data['to_email']
+			else:
+				# log here
+				sys.exit()
+
+			if data['smtp_server'] != "" and isinstance(data['smtp_server'], str):
+				SMTP_SERVER = data['smtp_server']
+			else:
+				# log here
+				sys.exit()
+
+			if data['smtp_port'] > 0 and isinstance(data['smtp_port'], int):
+				SMTP_PORT = data['smtp_port']
+			else:
+				# log here
+				sys.exit()
+
+			if data['trusted_notification'] == 1 and isinstance(data['trusted_notification'], int):
+				if len(data['trusted_networks']) == 0 and isinstance(data['trusted_networks'], list):
+					TRUSTED_NETWORKS = data['trusted_networks']
+				else:
+					# log here
+					sys.exit()
+
+	except Exception as e:
+		# log str(e)
+		sys.exit()
 
 
 def read_state():
@@ -39,8 +143,12 @@ def read_state():
 	"""
 	# global keyword so I can reassign the global variable inside the function
 	global BANNED_ADDRESSES
-	with open(SAVED_STATE_FILE, "r") as f:
-		BANNED_ADDRESSES = json.load(f)
+	try:
+		with open(SAVED_STATE_FILE, "r") as f:
+			BANNED_ADDRESSES = json.load(f)
+	except Exception as e:
+		# log str(e)
+		sys.exit()
 
 
 def log_action():
@@ -49,6 +157,11 @@ def log_action():
 	"""
 	pass
 
+def send_email(message):
+	"""
+	Sends notification emails to alert the user.
+	"""
+	pass
 
 def save_file_operation(action, address):
 	"""
