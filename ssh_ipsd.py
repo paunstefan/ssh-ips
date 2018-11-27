@@ -7,10 +7,9 @@ import time
 import subprocess
 import ipaddress
 import json
-
 import logging
 
-logging.basicConfig(level=logging.DEBUG)		# Comment when not needed
+logging.basicConfig(filename="ssh-ips.log", filemode="a", format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
 
 # Constants taken from configuration file
 ATTEMPTS = 3
@@ -54,86 +53,86 @@ def read_config():
 		with open(CONFIG_FILE, "r") as f:
 			data = json.load(f)
 	except ValueError:
-		#log
+		logging.ERROR("Could not parse config.json")
 		sys.exit()
 
 	try:
 		if data['attempts'] > 0 and isinstance(data['attempts'], int):
 			ATTEMPTS = data['attempts']
 		else:
-			#log here
+			logging.error("Invalid 'attempts' in config.")
 			sys.exit()
 
 		if data['attempts_timeout'] > 0 and isinstance(data['attempts_timeout'], int):
 			ATTEMPTS_TIMEOUT = data['attempts_timeout']
 		else:
-			#log here
+			logging.error("Invalid 'attempts_timeout' in config.")
 			sys.exit()
 
 		if data['auth_log_file'] != "" and isinstance(data['auth_log_file'], str):
 			AUTH_LOG_FILE = data['auth_log_file']
 		else:
-			#log here
+			logging.error("Invalid 'auth_log_file' in config.")
 			sys.exit()
 
 		if data['saved_state_file'] != "" and isinstance(data['saved_state_file'], str):
 			SAVED_STATE_FILE = data['saved_state_file']
 		else:
-			#log here
+			logging.error("Invalid 'saved_state_file' in config.")
 			sys.exit()
 
-		if data['firewall'] != "" and isinstance(data['firewall'], str):
+		if data['firewall'] in ['iptables', 'nftables'] and isinstance(data['firewall'], str):
 			FIREWALL = data['firewall']
 		else:
-			#log here
+			logging.error("Invalid 'firewall' in config.")
 			sys.exit()
 
-		if data['ban_time'] > 0 and isinstance(data['ban_time'], int):
+		if data['ban_time'] > -1 and isinstance(data['ban_time'], int):
 			BAN_TIME = data['ban_time']
 		else:
-			#log here
+			logging.error("Invalid 'ban_time' in config.")
 			sys.exit()
 
 		if data['send_email'] == 1:
 			if data['from_email'] != "" and isinstance(data['from_email'], str):
 				FROM_EMAIL = data['from_email']
 			else:
-				# log here
+				logging.error("Invalid 'from_email' in config.")
 				sys.exit()
 
 			if data['from_email_password'] != "" and isinstance(data['from_email_password'], str):
 				FROM_EMAIL_PASSWORD = data['from_email_password']
 			else:
-				# log here
+				logging.error("Invalid 'from_email_password' in config.")
 				sys.exit()
 
 			if data['to_email'] != "" and isinstance(data['to_email'], str):
 				TO_EMAIL = data['to_email']
 			else:
-				# log here
+				logging.error("Invalid 'to_email' in config.")
 				sys.exit()
 
 			if data['smtp_server'] != "" and isinstance(data['smtp_server'], str):
 				SMTP_SERVER = data['smtp_server']
 			else:
-				# log here
+				logging.error("Invalid 'smtp_server' in config.")
 				sys.exit()
 
 			if data['smtp_port'] > 0 and isinstance(data['smtp_port'], int):
 				SMTP_PORT = data['smtp_port']
 			else:
-				# log here
+				logging.error("Invalid 'smtp_port' in config.")
 				sys.exit()
 
 			if data['trusted_notification'] == 1 and isinstance(data['trusted_notification'], int):
 				if len(data['trusted_networks']) == 0 and isinstance(data['trusted_networks'], list):
 					TRUSTED_NETWORKS = data['trusted_networks']
 				else:
-					# log here
+					logging.error("Invalid 'trusted_networks' in config.")
 					sys.exit()
 
 	except Exception as e:
-		# log str(e)
+		logging.error(str(e))
 		sys.exit()
 
 
@@ -147,21 +146,16 @@ def read_state():
 		with open(SAVED_STATE_FILE, "r") as f:
 			BANNED_ADDRESSES = json.load(f)
 	except Exception as e:
-		# log str(e)
+		logging.error(str(e))
 		sys.exit()
 
-
-def log_action():
-	"""
-	Writes entries to the SSH-IPS log file.
-	"""
-	pass
 
 def send_email(message):
 	"""
 	Sends notification emails to alert the user.
 	"""
 	pass
+
 
 def save_file_operation(action, address):
 	"""
@@ -248,7 +242,7 @@ def handle_login(attempt, temp_addresses):
 	temp_addresses is a dictionary that stores addresses until they timeout or they are blocked
 		structure: {address: [nr_attempts, timestamp],}
 	"""
-	if attempt[0] == 0 and TRUSTED_NETWORKS != '':
+	if attempt[0] == 0 and TRUSTED_NOTIFICATION == 1:
 		untrusted_notification(attempt[2])
 
 	elif attempt[0] > 0:
@@ -271,29 +265,30 @@ def handle_login(attempt, temp_addresses):
 def block_address(address):
 	"""
 	Handles the blocking of the address by executing the firewall command needed.
+	It receives the address 3 element tuple.
 	"""
 	if address[1] == 4:
 		if FIREWALL == "iptables":
-			# insert rule here
-			logging.debug("Banned address {}".format(address[2]))
-			pass
+			subprocess.run(['iptables', '-I', 'INPUT', '-s', address[2], '-j', 'DROP'])
 		elif FIREWALL == "nftables":
 			#insert rule here
 			pass
 
 	elif address[1] == 6:
 		if FIREWALL == "iptables":
-			# insert rule here
-			pass
+			subprocess.run(['ip6tables', '-I', 'INPUT', '-s', address[2], '-j', 'DROP'])
 		elif FIREWALL == "nftables":
 			#insert rule here
 			pass
+
+	logging.info("Banned address {}".format(address[2]))
 
 	save_file_operation(1, address[2])
 
 def unban_address(address):
 	"""
 	Handles the unblocking of the addresses.
+	It receives the address string.
 	"""
 	version = 4
 	if ":" in address:
@@ -301,19 +296,19 @@ def unban_address(address):
 
 	if version == 4:
 		if FIREWALL == "iptables":
-			logging.debug("UnBanned address {}".format(address))
-			pass
+			subprocess.run(['iptables', '-D', 'INPUT', '-s', address, '-j', 'DROP'])
 		elif FIREWALL == "nftables":
 			#insert rule here
 			pass
 
 	elif version == 6:
 		if FIREWALL == "iptables":
-			# insert rule here
-			pass
+			subprocess.run(['ip6tables', '-D', 'INPUT', '-s', address, '-j', 'DROP'])
 		elif FIREWALL == "nftables":
 			#insert rule here
 			pass
+
+	logging.info("Unbanned address {}".format(address))
 
 	save_file_operation(0, address)
 
@@ -350,14 +345,14 @@ def check_bans():
 
 
 def main():
+	logging.info("SSH-IPS STARTED")
 	LOOP_SLEEP_TIME = 0.1
 	read_config()
 	read_state()
-	logging.debug(BANNED_ADDRESSES)
 
 	temporary_addresses = dict()		# This stores the addresses until the timeout expires
 
-	logging.debug("SSH-IPS STARTED")
+	logging.info("Initialization finished.")
 
 	# Counts the lines so I can check them all if added in one write (or between my reads)
 	line_count_initial = int(subprocess.check_output(['wc', '-l', AUTH_LOG_FILE]).split()[0])
@@ -365,7 +360,10 @@ def main():
 	# The main loop
 	while True:
 		time.sleep(LOOP_SLEEP_TIME)											# Stops the CPU from maxing out
-		check_bans()
+
+		# If BAN_TIME is <= 0 it is an infinite ban
+		if BAN_TIME > 0:
+			check_bans()
 		try:
 			line_count_current = int(subprocess.check_output(['wc', '-l', AUTH_LOG_FILE]).split()[0])
 
@@ -384,10 +382,9 @@ def main():
 						handle_login(result, temporary_addresses)
 						logging.debug(temporary_addresses)
 
-
 			line_count_initial = line_count_current
 		except Exception as e:
-			logging.debug(str(e))
+			logging.error(str(e))
 
 
 if __name__ == "__main__":
