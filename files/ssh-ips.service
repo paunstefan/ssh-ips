@@ -1,0 +1,11 @@
+[Unit]
+Description=SSH-IPS daemon
+After=network.target ssh.service
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/ssh-ips/ssh-ipsd.py
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

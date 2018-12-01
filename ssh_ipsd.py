@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 """
-
+ssh_ipsd.py
+This file contains the main SSH-IPS daemon.
 """
 import re
 import sys
@@ -9,18 +11,18 @@ import ipaddress
 import json
 import logging
 
-logging.basicConfig(filename="ssh-ips.log", filemode="a", format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(filename="/var/log/ssh-ips.log", filemode="a", format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
 
 # Constants taken from configuration file
 ATTEMPTS = 3
 ATTEMPTS_TIMEOUT = 60
 AUTH_LOG_FILE = '/var/log/auth.log'
-CONFIG_FILE = 'files/config.json'
-SAVED_STATE_FILE = 'files/saved_state.json'
+CONFIG_FILE = '/etc/ssh-ips/config.json'
+SAVED_STATE_FILE = '/var/lib/ssh-ips/saved_state.json'
 BANNED_ADDRESSES = dict()
 FIREWALL = 'iptables'
 BAN_TIME = 60
-SEND_EMAIL = False
+SEND_EMAIL = 0
 FROM_EMAIL = ''
 FROM_EMAIL_PASSWORD = ''
 SMTP_SERVER = ''
@@ -81,7 +83,7 @@ def read_config():
 			logging.error("Invalid 'saved_state_file' in config.")
 			sys.exit()
 
-		if data['firewall'] in ['iptables', 'nftables'] and isinstance(data['firewall'], str):
+		if data['firewall'] in ['iptables', ] and isinstance(data['firewall'], str):
 			FIREWALL = data['firewall']
 		else:
 			logging.error("Invalid 'firewall' in config.")
@@ -124,12 +126,12 @@ def read_config():
 				logging.error("Invalid 'smtp_port' in config.")
 				sys.exit()
 
-			if data['trusted_notification'] == 1 and isinstance(data['trusted_notification'], int):
-				if len(data['trusted_networks']) == 0 and isinstance(data['trusted_networks'], list):
-					TRUSTED_NETWORKS = data['trusted_networks']
-				else:
-					logging.error("Invalid 'trusted_networks' in config.")
-					sys.exit()
+		if data['trusted_notification'] == 1 and isinstance(data['trusted_notification'], int):
+			if len(data['trusted_networks']) == 0 and isinstance(data['trusted_networks'], list):
+				TRUSTED_NETWORKS = data['trusted_networks']
+			else:
+				logging.error("Invalid 'trusted_networks' in config.")
+				sys.exit()
 
 	except Exception as e:
 		logging.error(str(e))
@@ -189,7 +191,6 @@ def check_regex(line):
 				r"(.*Failed password.* )",
 				r"(.*Invalid user.* )",
 				r"(.*Did not receive identification.* )",
-				r"(.*Received disconnect.*from )",
 				)
 
 	accepted_re = r"(.*Accepted password.* )"
@@ -206,7 +207,6 @@ def check_regex(line):
 			address = expression.search(line).group(2)
 
 			if variant == r"(.*message repeated 2 times.*Failed password.* )":
-				logging.debug("REACHED THIS")										# DELETE THIS
 				failed = 2
 			break
 
@@ -270,19 +270,12 @@ def block_address(address):
 	if address[1] == 4:
 		if FIREWALL == "iptables":
 			subprocess.run(['iptables', '-I', 'INPUT', '-s', address[2], '-j', 'DROP'])
-		elif FIREWALL == "nftables":
-			#insert rule here
-			pass
 
 	elif address[1] == 6:
 		if FIREWALL == "iptables":
 			subprocess.run(['ip6tables', '-I', 'INPUT', '-s', address[2], '-j', 'DROP'])
-		elif FIREWALL == "nftables":
-			#insert rule here
-			pass
 
 	logging.info("Banned address {}".format(address[2]))
-
 	save_file_operation(1, address[2])
 
 def unban_address(address):
@@ -297,19 +290,12 @@ def unban_address(address):
 	if version == 4:
 		if FIREWALL == "iptables":
 			subprocess.run(['iptables', '-D', 'INPUT', '-s', address, '-j', 'DROP'])
-		elif FIREWALL == "nftables":
-			#insert rule here
-			pass
 
 	elif version == 6:
 		if FIREWALL == "iptables":
 			subprocess.run(['ip6tables', '-D', 'INPUT', '-s', address, '-j', 'DROP'])
-		elif FIREWALL == "nftables":
-			#insert rule here
-			pass
 
 	logging.info("Unbanned address {}".format(address))
-
 	save_file_operation(0, address)
 
 
@@ -326,8 +312,9 @@ def untrusted_notification(address):
 			break
 
 	if trusted == 0:
-		# SEND NOTIFICATION
-		pass
+		logging.info("Untrusted login from address: {}".format(address))
+		if SEND_EMAIL == 1:
+			send_email("Untrusted login from address: {}".format(address))
 
 
 def check_bans():
