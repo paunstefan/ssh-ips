@@ -1,10 +1,10 @@
 {
 	"auth_log_file": "/var/log/auth.log",
-	"attempts": 5,
-	"attempts_timeout": 60,
+	"attempts": 3,
+	"attempts_timeout": 30,
 	"saved_state_file": "/var/lib/ssh-ips/saved_state.json",
 	"firewall": "iptables",
-	"ban_time": 50,
+	"ban_time": 60,
 
 	"send_email": 0,
 	"from_email": "",
