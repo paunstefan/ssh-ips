@@ -42,15 +42,6 @@ class TestRegex(unittest.TestCase):
 		self.assertEqual(ssh_ipsd.check_regex(line), (1, 6, '2a02:2f0c:730c:d800:9d09:dc86:7b88:1f99'))
 
 
-	def test_ipv4_5(self):
-		line = "Nov 13 16:43:18 ubuntu sshd[213]: Received disconnect from 118.123.15.142 port 58149:11:"
-		self.assertEqual(ssh_ipsd.check_regex(line),(1, 4, '118.123.15.142'))
-
-	def test_ipv6_5(self):
-		line = "Nov 13 16:43:18 ubuntu sshd[213]: Received disconnect from 2001:db8::acab:1 port 58149:11:"
-		self.assertEqual(ssh_ipsd.check_regex(line), (1, 6, '2001:db8::acab:1'))
-
-
 	def test_ipv4_special(self):
 		line = "Nov 13 16:43:18 ubuntu sshd[213]: Failed password for 10.10.10.2 from 192.168.93.136 port 35343 ssh2"
 		self.assertEqual(ssh_ipsd.check_regex(line), (1, 4, '192.168.93.136'))

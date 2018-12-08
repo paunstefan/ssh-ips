@@ -163,6 +163,7 @@ def save_file_operation(action, address):
 	"""
 	Writes or deletes addresses from the saved state file.
 	The action parameter can be 0 if the action is 'delete' and 1 if the action is 'write'.
+	Save format: {'address':timestamp}
 	"""
 	if action == 0:
 		BANNED_ADDRESSES.pop(address)
