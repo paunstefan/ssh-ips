@@ -56,86 +56,92 @@ def read_config():
 			data = json.load(f)
 	except ValueError:
 		logging.ERROR("Could not parse config.json")
-		sys.exit()
+		sys.exit(1)
 
 	try:
 		if data['attempts'] > 0 and isinstance(data['attempts'], int):
 			ATTEMPTS = data['attempts']
 		else:
 			logging.error("Invalid 'attempts' in config.")
-			sys.exit()
+			sys.exit(1)
 
 		if data['attempts_timeout'] > 0 and isinstance(data['attempts_timeout'], int):
 			ATTEMPTS_TIMEOUT = data['attempts_timeout']
 		else:
 			logging.error("Invalid 'attempts_timeout' in config.")
-			sys.exit()
+			sys.exit(1)
 
 		if data['auth_log_file'] != "" and isinstance(data['auth_log_file'], str):
 			AUTH_LOG_FILE = data['auth_log_file']
 		else:
 			logging.error("Invalid 'auth_log_file' in config.")
-			sys.exit()
+			sys.exit(1)
 
 		if data['saved_state_file'] != "" and isinstance(data['saved_state_file'], str):
 			SAVED_STATE_FILE = data['saved_state_file']
 		else:
 			logging.error("Invalid 'saved_state_file' in config.")
-			sys.exit()
+			sys.exit(1)
 
 		if data['firewall'] in ['iptables', ] and isinstance(data['firewall'], str):
 			FIREWALL = data['firewall']
 		else:
 			logging.error("Invalid 'firewall' in config.")
-			sys.exit()
+			sys.exit(1)
 
 		if data['ban_time'] > -1 and isinstance(data['ban_time'], int):
 			BAN_TIME = data['ban_time']
 		else:
 			logging.error("Invalid 'ban_time' in config.")
-			sys.exit()
+			sys.exit(1)
 
 		if data['send_email'] == 1:
 			if data['from_email'] != "" and isinstance(data['from_email'], str):
 				FROM_EMAIL = data['from_email']
 			else:
 				logging.error("Invalid 'from_email' in config.")
-				sys.exit()
+				sys.exit(1)
 
 			if data['from_email_password'] != "" and isinstance(data['from_email_password'], str):
 				FROM_EMAIL_PASSWORD = data['from_email_password']
 			else:
 				logging.error("Invalid 'from_email_password' in config.")
-				sys.exit()
+				sys.exit(1)
 
 			if data['to_email'] != "" and isinstance(data['to_email'], str):
 				TO_EMAIL = data['to_email']
 			else:
 				logging.error("Invalid 'to_email' in config.")
-				sys.exit()
+				sys.exit(1)
 
 			if data['smtp_server'] != "" and isinstance(data['smtp_server'], str):
 				SMTP_SERVER = data['smtp_server']
 			else:
 				logging.error("Invalid 'smtp_server' in config.")
-				sys.exit()
+				sys.exit(1)
 
 			if data['smtp_port'] > 0 and isinstance(data['smtp_port'], int):
 				SMTP_PORT = data['smtp_port']
 			else:
 				logging.error("Invalid 'smtp_port' in config.")
-				sys.exit()
+				sys.exit(1)
 
 		if data['trusted_notification'] == 1 and isinstance(data['trusted_notification'], int):
-			if len(data['trusted_networks']) == 0 and isinstance(data['trusted_networks'], list):
-				TRUSTED_NETWORKS = data['trusted_networks']
+			if len(data['trusted_networks']) != 0 and isinstance(data['trusted_networks'], list):
+				try:
+					for addr in data['trusted_networks']:
+						ipaddress.ip_network(addr)
+					TRUSTED_NETWORKS = data['trusted_networks']
+				except ValueError:
+					logging.error("Invalid 'trusted_networks' in config.")
+					sys.exit(1)
 			else:
 				logging.error("Invalid 'trusted_networks' in config.")
-				sys.exit()
+				sys.exit(1)
 
 	except Exception as e:
 		logging.error(str(e))
-		sys.exit()
+		sys.exit(1)
 
 
 def read_state():
@@ -149,7 +155,7 @@ def read_state():
 			BANNED_ADDRESSES = json.load(f)
 	except Exception as e:
 		logging.error(str(e))
-		sys.exit()
+		sys.exit(1)
 
 
 def send_email(message):

@@ -1,0 +1,19 @@
+{
+  "auth_log_file": "/var/log/auth.log",
+  "attempts": 5,
+  "attempts_timeout": 30,
+  "saved_state_file": "/var/lib/ssh-ips/saved_state.json",
+  "firewall": "iptables",
+  "ban_time": 60,
+  "send_email": 0,
+  "from_email": "",
+  "from_email_password": "",
+  "to_email": "",
+  "smtp_server": "",
+  "smtp_port": 0,
+  "trusted_notification": 0,
+  "trusted_networks": [
+    "192.168.100.1",
+    "192.168.100.2"
+  ]
+}
