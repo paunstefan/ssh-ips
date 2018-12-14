@@ -63,11 +63,49 @@ def banned_addresses_info(config):
 			)
 
 
-def unban_address(address):
+def unban_address(address, cfg):
 	"""
 	Unbans the address received.
+	Executes the iptables command, decrements the saved state entry by the ban time and restarts ssh_ipsd.
 	"""
-	pass
+	with open(cfg["saved_state_file"], "r") as f:
+		banned_addresses = json.load(f)
+
+	firewall = cfg['firewall']
+
+	all = False
+
+	if address == 'all':
+		all = True
+		for addr in banned_addresses:
+			banned_addresses[addr] -= cfg['ban_time']
+			if firewall == 'iptables':
+				if ':' in addr:
+					subprocess.run(['ip6tables', '-D', 'INPUT', '-s', addr, '-j', 'DROP'])
+				else:
+					subprocess.run(['iptables', '-D', 'INPUT', '-s', addr, '-j', 'DROP'])
+
+		print("All addresses unbanned successfully!")
+
+	if not all:
+		if address not in banned_addresses:
+			print("Error: address is not banned")
+			sys.exit(1)
+		banned_addresses[address] -= cfg['ban_time']
+		if firewall == 'iptables':
+			if ':' in address:
+				subprocess.run(['ip6tables', '-D', 'INPUT', '-s', address, '-j', 'DROP'])
+			else:
+				subprocess.run(['iptables', '-D', 'INPUT', '-s', address, '-j', 'DROP'])
+
+		print("Address {} unbanned!".format(address))
+
+	with open(cfg["saved_state_file"], "w") as f:
+		json.dump(banned_addresses, f)
+
+	restart()
+
+
 
 
 def show_stats(cfg):
@@ -119,14 +157,21 @@ def stop():
 	"""
 	Stops SSH-IPS.
 	"""
-	subprocess.run('/bin/systemctl stop ssh-ips')
+	try:
+		subprocess.run('/bin/systemctl stop ssh-ips')
+	except FileNotFoundError:
+		print("You have not started ssh-ips.")
+
 
 
 def restart():
 	"""
 	Restarts SSH-IPS
 	"""
-	subprocess.run('/bin/systemctl restart ssh-ips')
+	try:
+		subprocess.run('/bin/systemctl restart ssh-ips')
+	except FileNotFoundError:
+		print("You have not started ssh-ips.")
 
 
 def update_config(cfg):
@@ -150,6 +195,7 @@ def main():
 		epilog="--config must be used with one of more config variables")
 	group = parser.add_mutually_exclusive_group()
 
+	# Command line arguments
 	group.add_argument("-c", "--config", action="store_true", help="Change config.")
 	group.add_argument("-i", "--info", action="store_true", help="Show banned addresses")
 	group.add_argument("-u", "--unban", type=str, help="Unban address")
@@ -200,8 +246,9 @@ def main():
 		if arg_number != 3:
 			parser.print_help()
 			sys.exit(1)
-		unban_address(args.unban)
+		unban_address(args.unban, configuration)
 
+	# Here start the configuration changes
 	if args.config:
 		if arg_number < 3:
 			parser.print_help()
