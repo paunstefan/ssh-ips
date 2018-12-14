@@ -34,7 +34,7 @@ fi
 
 
 function change_python {
-    sed -i "s|/usr/bin/python3|$PYTHON_INSTALL|g" shtest        # REPLACE THIS FILE HERE
+    sed -i "s|/usr/bin/python3|$PYTHON_INSTALL|g" files/ssh-ips.service
 }
 
 
