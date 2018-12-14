@@ -73,10 +73,16 @@ def unban_address(address, cfg):
 
 	firewall = cfg['firewall']
 
-	all = False
+	# If the ban is infinite, ssh_ipsd never removes addresses from the saved state file
+	# so I need to remove them here.
+	infinite_ban = False
+	if cfg['ban_time'] == 0:
+		infinite_ban = True
+
+	unban_all = False
 
 	if address == 'all':
-		all = True
+		unban_all = True
 		for addr in banned_addresses:
 			banned_addresses[addr] -= cfg['ban_time']
 			if firewall == 'iptables':
@@ -85,9 +91,12 @@ def unban_address(address, cfg):
 				else:
 					subprocess.run(['iptables', '-D', 'INPUT', '-s', addr, '-j', 'DROP'])
 
+			if infinite_ban:
+				banned_addresses.pop(addr)
+
 		print("All addresses unbanned successfully!")
 
-	if not all:
+	if not unban_all:
 		if address not in banned_addresses:
 			print("Error: address is not banned")
 			sys.exit(1)
@@ -98,6 +107,8 @@ def unban_address(address, cfg):
 			else:
 				subprocess.run(['iptables', '-D', 'INPUT', '-s', address, '-j', 'DROP'])
 
+		if infinite_ban:
+			banned_addresses.pop(address)
 		print("Address {} unbanned!".format(address))
 
 	with open(cfg["saved_state_file"], "w") as f:
