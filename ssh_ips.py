@@ -8,7 +8,7 @@ import sys
 import os.path
 import json
 from datetime import datetime
-import operator
+import operators
 import subprocess
 import ipaddress
 import time
@@ -18,8 +18,7 @@ def read_config():
 	"""
 	Reads the configuration info into the cfg dictionary.
 	"""
-	#CONFIG_FILE = '/etc/ssh-ips/config.json'
-	CONFIG_FILE = 'extra/config_test.json'
+	CONFIG_FILE = '/etc/ssh-ips/config.json'
 	try:
 		with open(CONFIG_FILE, "r") as f:
 			cfg = json.load(f)
@@ -41,7 +40,7 @@ def banned_addresses_info(config):
 	"""
 	Prints information about the banned addresses.
 	"""
-	state_file = 'extra/state_test.json'		# CHANGE TO FILE FROM CONFIG
+	state_file = config['saved_state_file']
 	ban_time = 120
 
 	try:
@@ -123,8 +122,7 @@ def show_stats(cfg):
 	"""
 	Shows SSH-IPS statistics.
 	"""
-	#log_file = "/var/log/ssh-ips.log"
-	log_file = 'extra/ssh-ips.log'
+	log_file = "/var/log/ssh-ips.log"
 
 	try:
 		with open(log_file, "r") as f:
@@ -189,8 +187,7 @@ def update_config(cfg):
 	"""
 	Updates SSH-IPS config and restarts the daemon.
 	"""
-	CONFIG_FILE = 'extra/config_test.json'
-	#CONFIG_FILE = '/etc/ssh-ips/config.json'
+	CONFIG_FILE = '/etc/ssh-ips/config.json'
 	try:
 		with open(CONFIG_FILE, "w") as f:
 			json.dump(cfg, f, indent=2)

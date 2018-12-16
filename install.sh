@@ -63,6 +63,8 @@ function install_systemd {
     mkdir /usr/local/bin/ssh-ips
     cp ssh_ipsd.py /usr/local/bin/ssh-ips
     cp ssh_ips.py /usr/local/bin/ssh-ips
+    chmod 774 /usr/local/bin/ssh-ips/ssh_ipsd.py
+    chmod 774 /usr/local/bin/ssh-ips/ssh_ips.py
     echo "Installed executables to /usr/local/bin"
 
     # Move the default config file
