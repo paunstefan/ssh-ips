@@ -126,18 +126,23 @@ def read_config():
 				logging.error("Invalid 'smtp_port' in config.")
 				sys.exit(1)
 
-		if data['trusted_notification'] == 1 and isinstance(data['trusted_notification'], int):
-			if len(data['trusted_networks']) != 0 and isinstance(data['trusted_networks'], list):
-				try:
-					for addr in data['trusted_networks']:
-						ipaddress.ip_network(addr)
-					TRUSTED_NETWORKS = data['trusted_networks']
-				except ValueError:
-					logging.error("Invalid 'trusted_networks' in config.")
-					sys.exit(1)
-			else:
+		if data['trusted_notification'] in [0, 1]:
+			TRUSTED_NOTIFICATION = data['trusted_notification']
+		else:
+			logging.error("Invalid 'trusted_notification' in config.")
+			sys.exit(1)
+
+		if isinstance(data['trusted_networks'], list):
+			try:
+				for addr in data['trusted_networks']:
+					ipaddress.ip_network(addr)
+				TRUSTED_NETWORKS = data['trusted_networks']
+			except ValueError:
 				logging.error("Invalid 'trusted_networks' in config.")
 				sys.exit(1)
+		else:
+			logging.error("Invalid 'trusted_networks' in config.")
+			sys.exit(1)
 
 	except Exception as e:
 		logging.error(str(e))

@@ -18,11 +18,11 @@ if ! stat /proc/1/exe | head -1 | grep -q 'systemd'; then
 	exit 1
 fi
 
-if [ ! -f $PYTHON_INSTALL ]; then
+if [ ! -f $PYTHON_INSTALL ] && [ $# -eq 0 ]; then
     echo "Default Python 3 install not found."
-    echo "Please manually enter the Python 3 interpreter or create a link to /usr/bin/python3 (recommended)."
-    echo "Example: ln -s [python3 absolute path] /usr/bin/python3"
-    echo "Example: ./install.sh [python3 full path]"
+    echo "Please create a link to /usr/bin/python3 (recommended) or manually enter the Python 3 interpreter."
+    echo "Link creation example: ln -s [python3 absolute path] /usr/bin/python3"
+    echo "Manual example: ./install.sh [python3 absolute path]"
     exit 1
 fi
 
@@ -37,20 +37,28 @@ function change_python {
     sed -i "s|/usr/bin/python3|$PYTHON_INSTALL|g" files/ssh-ips.service
 }
 
+function check_log_file {
+    if [ ! -f /var/log/auth.log ]; then
+        echo "Your SSH installation doesn't use the default /var/log/auth.log log file."
+        echo "Please change it in the /etc/ssh-ips/config.json."
+        echo "CentOS: /var/log/secure"
+    fi
+}
+
 
 if [ $# -eq 1 ]; then
     PYTHON_INSTALL=$1
-    change_python
     if [ ! -f $PYTHON_INSTALL ]; then
         echo "Interpreter not found"
         exit 1
     fi
 
-    if [[ ! "PYTHON_INSTALL" = /* ]]; then
+    if [[ ! "$PYTHON_INSTALL" = /* ]]; then
         echo "Please use the absolute path."
         echo "You can find it using 'which $PYTHON_INSTALL'"
         exit 1
     fi
+    change_python
 fi
 
 
@@ -62,9 +70,9 @@ function install_systemd {
     # Install the executables to their location
     mkdir /usr/local/bin/ssh-ips
     cp ssh_ipsd.py /usr/local/bin/ssh-ips
-    cp ssh_ips.py /usr/local/bin/ssh-ips
+    cp ssh_ips.py /usr/local/bin/
     chmod 774 /usr/local/bin/ssh-ips/ssh_ipsd.py
-    chmod 774 /usr/local/bin/ssh-ips/ssh_ips.py
+    chmod 774 /usr/local/bin/ssh_ips.py
     echo "Installed executables to /usr/local/bin"
 
     # Move the default config file
@@ -98,4 +106,5 @@ function install_systemd {
 
 if [ "$PROC_MANAGER" == "systemd" ]; then
 	install_systemd
+    check_log_file
 fi

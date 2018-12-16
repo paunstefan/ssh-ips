@@ -159,7 +159,7 @@ def start():
 	"""
 	Starts SSH-IPS
 	"""
-	subprocess.run('/bin/systemctl start ssh-ips')
+	subprocess.run(['/bin/systemctl', 'start', 'ssh-ips'])
 
 
 def stop():
@@ -167,7 +167,7 @@ def stop():
 	Stops SSH-IPS.
 	"""
 	try:
-		subprocess.run('/bin/systemctl stop ssh-ips')
+		subprocess.run(['/bin/systemctl', 'stop', 'ssh-ips'])
 	except FileNotFoundError:
 		print("You have not started ssh-ips.")
 
@@ -178,7 +178,7 @@ def restart():
 	Restarts SSH-IPS
 	"""
 	try:
-		subprocess.run('/bin/systemctl restart ssh-ips')
+		subprocess.run(['/bin/systemctl', 'restart', 'ssh-ips'])
 	except FileNotFoundError:
 		print("You have not started ssh-ips.")
 
@@ -256,6 +256,15 @@ def main():
 			sys.exit(1)
 		unban_address(args.unban, configuration)
 
+	if args.start:
+		start()
+
+	if args.stop:
+		stop()
+
+	if args.restart:
+		restart()
+
 	# Here start the configuration changes
 	if args.config:
 		if arg_number < 3:
@@ -298,7 +307,7 @@ def main():
 				sys.exit(1)
 			configuration["ban_time"] = args.ban_time
 
-		if args.email:
+		if str(args.email) in ['0', '1']:
 			if args.email not in [0, 1]:
 				print("Error: email must be 0 or 1")
 				sys.exit(1)
@@ -322,7 +331,7 @@ def main():
 				sys.exit(1)
 			configuration["smtp_port"] = args.smtp_port
 
-		if args.trusted:
+		if str(args.trusted) in ['0', '1']:
 			if args.trusted not in [0, 1]:
 				print("Error: trusted must be 0 or 1")
 				sys.exit(1)
