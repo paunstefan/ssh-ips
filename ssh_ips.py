@@ -8,7 +8,7 @@ import sys
 import os.path
 import json
 from datetime import datetime
-import operators
+import operator
 import subprocess
 import ipaddress
 import time
