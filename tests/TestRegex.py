@@ -23,6 +23,14 @@ class TestRegex(unittest.TestCase):
 		line = "Nov 13 16:43:18 ubuntu sshd[213]: message repeated 2 times [Failed password for root from 2001:db8::acab:2 port 35343 ssh2]"
 		self.assertEqual(ssh_ipsd.check_regex(line), (2, 6, '2001:db8::acab:2'))
 
+	def test_ipv4_n(self):
+		line = "Nov 23 18:57:30 Skylab-L sshd[15746]: message repeated 5 times: [ Failed password for paunstefan from 192.168.100.22 port 41212 ssh2]"
+		self.assertEqual(ssh_ipsd.check_regex(line), (5, 4, '192.168.100.22'))
+
+	def test_ipv6_n(self):
+		line = "Nov 13 16:43:18 ubuntu sshd[213]: message repeated 5 times [Failed password for root from 2001:db8::acab:2 port 35343 ssh2]"
+		self.assertEqual(ssh_ipsd.check_regex(line), (5, 6, '2001:db8::acab:2'))
+
 
 	def test_ipv4_3(self):
 		line = "Nov 13 16:43:18 ubuntu sshd[213]: Invalid user admin from 179.170.183.29"
@@ -39,6 +47,14 @@ class TestRegex(unittest.TestCase):
 
 	def test_ipv6_4(self):
 		line = "Nov 13 16:43:18 ubuntu sshd[213]: Did not receive identification string from 2a02:2f0c:730c:d800:9d09:dc86:7b88:1f99 port 32948"
+		self.assertEqual(ssh_ipsd.check_regex(line), (1, 6, '2a02:2f0c:730c:d800:9d09:dc86:7b88:1f99'))
+
+	def test_ipv4_5(self):
+		line = "Dec 17 19:06:39 ubuntu sshd[3995]: Unable to negotiate with 103.207.39.173 port 61752: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1 [preauth]"
+		self.assertEqual(ssh_ipsd.check_regex(line),(1, 4, '103.207.39.173'))
+
+	def test_ipv6_5(self):
+		line = "Dec 17 19:06:39 ubuntu sshd[3995]: Unable to negotiate with 2a02:2f0c:730c:d800:9d09:dc86:7b88:1f99 port 61752: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1 [preauth]"
 		self.assertEqual(ssh_ipsd.check_regex(line), (1, 6, '2a02:2f0c:730c:d800:9d09:dc86:7b88:1f99'))
 
 

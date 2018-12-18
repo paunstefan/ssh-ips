@@ -20,7 +20,7 @@ fi
 
 if [ ! -f $PYTHON_INSTALL ] && [ $# -eq 0 ]; then
     echo "Default Python 3 install not found."
-    echo "Please create a link to /usr/bin/python3 (recommended) or manually enter the Python 3 interpreter."
+    echo "Please create a link to /usr/bin/python3 or manually enter the Python 3 interpreter."
     echo "Link creation example: ln -s [python3 absolute path] /usr/bin/python3"
     echo "Manual example: ./install.sh [python3 absolute path]"
     exit 1
@@ -33,8 +33,8 @@ if [ $# -gt 1 ]; then
 fi
 
 
-function change_python {
-    sed -i "s|/usr/bin/python3|$PYTHON_INSTALL|g" files/ssh-ips.service
+function python_ln {
+    ln -s $PYTHON_INSTALL /usr/bin/python3
 }
 
 function check_log_file {
@@ -58,7 +58,7 @@ if [ $# -eq 1 ]; then
         echo "You can find it using 'which $PYTHON_INSTALL'"
         exit 1
     fi
-    change_python
+    python_ln
 fi
 
 
@@ -71,8 +71,9 @@ function install_systemd {
     mkdir /usr/local/bin/ssh-ips
     cp ssh_ipsd.py /usr/local/bin/ssh-ips
     cp ssh_ips.py /usr/local/bin/
+    mv /usr/local/bin/ssh_ips.py /usr/local/bin/ssh_ips
     chmod 774 /usr/local/bin/ssh-ips/ssh_ipsd.py
-    chmod 774 /usr/local/bin/ssh_ips.py
+    chmod 774 /usr/local/bin/ssh_ips
     echo "Installed executables to /usr/local/bin"
 
     # Move the default config file

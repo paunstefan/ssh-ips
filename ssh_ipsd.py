@@ -191,18 +191,19 @@ def save_file_operation(action, address):
 def check_regex(line):
 	"""
 	Checks the line to see if it is a failed login attempt.
-	Returns a tuple of 3 elements, 0/1/2 if it was failed or not, 4/6 for the IP version and the address.
+	Returns a tuple of 3 elements, 0/1/n if it was failed or not, 4/6 for the IP version and the address.
 	The failed variable becomes 2 if the matched string should be counted 2 times.
 	Example: (1, 4, "192.168.1.1") means that it was a failed attempt from the IPv4 address "192.168.1.1".
 	"""
 	ipv4_re = r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
 	ipv6_re = r"([0-9a-f]*:[0-9a-f:]+)"
 
-	# The 'message repeated 2 times...' expression should be first, otherwise the line will be matched with another expression
-	failed_re = (r"(.*message repeated 2 times.*Failed password.* )",
+	# The 'message repeated N times...' expression should be first, otherwise the line will be matched with another expression
+	failed_re = (r"(.*message repeated (\d*) times.*Failed password.* )",
 				r"(.*Failed password.* )",
 				r"(.*Invalid user.* )",
 				r"(.*Did not receive identification.* )",
+				r"(.*Unable to negotiate with.* )",
 				)
 
 	accepted_re = r"(.*Accepted password.* )"
@@ -218,8 +219,9 @@ def check_regex(line):
 			failed = 1
 			address = expression.search(line).group(2)
 
-			if variant == r"(.*message repeated 2 times.*Failed password.* )":
-				failed = 2
+			if variant == r"(.*message repeated (\d*) times.*Failed password.* )":
+				address = expression.search(line).group(3)
+				failed = int(expression.search(line).group(2))
 			break
 
 		expression = re.compile(variant + ipv6_re)
@@ -228,8 +230,9 @@ def check_regex(line):
 			ip_version = 6
 			address = expression.search(line).group(2)
 
-			if variant == r"(.*message repeated 2 times.*Failed password.* )":
-				failed = 2
+			if variant == r"(.*message repeated (\d*) times.*Failed password.* )":
+				address = expression.search(line).group(3)
+				failed = int(expression.search(line).group(2))
 			break
 
 	# The case in which there was no match for any failure string

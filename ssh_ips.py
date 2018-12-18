@@ -250,7 +250,7 @@ def main():
 			sys.exit(1)
 		show_stats(configuration)
 
-	if args.unban:
+	if args.unban is not None:
 		if arg_number != 3:
 			parser.print_help()
 			sys.exit(1)
@@ -271,73 +271,73 @@ def main():
 			parser.print_help()
 			sys.exit(1)
 
-		if args.timeout:
+		if args.timeout is not None:
 			if args.timeout <= 0:
 				print("Error: timeout must be > 0")
 				sys.exit(1)
 			configuration["attempts_timeout"] = args.timeout
 
-		if args.log:
+		if args.log is not None:
 			if not os.path.isfile(args.log):
 				print("Error: log file does not exist")
 				sys.exit(1)
 			configuration["auth_log_file"] = args.log
 
-		if args.attempts:
+		if args.attempts is not None:
 			if args.attempts < 1:
 				print("Error: attempts counter must be > 0")
 				sys.exit(1)
 			configuration["attempts"] = args.attempts
 
-		if args.state:
+		if args.state is not None:
 			if not os.path.isfile(args.state):
 				print("Error: state file does not exist")
 				sys.exit(1)
 			configuration["saved_state_file"] = args.state
 
-		if args.firewall:
+		if args.firewall is not None:
 			if args.firewall != 'iptables':
 				print("Error: firewall not supported")
 				sys.exit(1)
 			configuration["firewall"] = args.firewall
 
-		if args.ban_time:
+		if args.ban_time is not None:
 			if args.ban_time < 0:
 				print("Error: ban time must be >=0")
 				sys.exit(1)
 			configuration["ban_time"] = args.ban_time
 
-		if str(args.email) in ['0', '1']:
+		if args.email is not None:
 			if args.email not in [0, 1]:
 				print("Error: email must be 0 or 1")
 				sys.exit(1)
 			configuration["send_email"] = args.email
 
-		if args.from_email:
+		if args.from_email is not None:
 			configuration["from_email"] = args.from_email
 
-		if args.from_email_pass:
+		if args.from_email_pass is not None:
 			configuration["from_email_pass"] = args.from_email_pass
 
-		if args.to_email:
+		if args.to_email is not None:
 			configuration["to_email"] = args.to_email
 
-		if args.smtp_server:
+		if args.smtp_server is not None:
 			configuration["smtp_server"] = args.smtp_server
 
-		if args.smtp_port:
+		if args.smtp_port is not None:
 			if args.smtp_port < 1:
 				print("Error: smtp_server_port not valid")
 				sys.exit(1)
 			configuration["smtp_port"] = args.smtp_port
 
-		if str(args.trusted) in ['0', '1']:
+		if args.trusted is not None:
 			if args.trusted not in [0, 1]:
 				print("Error: trusted must be 0 or 1")
 				sys.exit(1)
 			configuration["trusted_notification"] = args.trusted
 
-		if args.trusted_network_add:
+		if args.trusted_network_add is not None:
 			if args.trusted_network_add in configuration["trusted_networks"]:
 				print("Error: trusted address already exists")
 				sys.exit(1)
@@ -348,7 +348,7 @@ def main():
 				print("Error: trusted_network not valid")
 				sys.exit(1)
 
-		if args.trusted_network_rm:
+		if args.trusted_network_rm is not None:
 			configuration["trusted_networks"].remove(args.trusted_network_rm)
 
 		update_config(configuration)
