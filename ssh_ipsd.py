@@ -11,7 +11,7 @@ import ipaddress
 import json
 import logging
 
-logging.basicConfig(filename="/var/log/ssh-ips.log", filemode="a", format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(filename="/var/log/ssh-ips.log", filemode="a", format='%(asctime)s: %(levelname)s: %(message)s', level=logging.INFO)
 
 # Constants taken from configuration file
 ATTEMPTS = 3
@@ -167,7 +167,42 @@ def send_email(message):
 	"""
 	Sends notification emails to alert the user.
 	"""
-	pass
+	import smtplib
+	try:
+		server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+
+		server.ehlo()
+		server.starttls()
+		server.ehlo()
+
+		server.login(FROM_EMAIL, FROM_EMAIL_PASSWORD)
+
+		msg = "\r\n".join([
+			"From: {}".format(FROM_EMAIL),
+			"To: {}".format(TO_EMAIL),
+			"Subject: SSH-IPS",
+			"",
+			message
+		])
+
+		server.sendmail(FROM_EMAIL, TO_EMAIL, msg)
+		server.quit()
+	except smtplib.SMTPAuthenticationError:
+		logging.error("SMTP Authentication error.")
+	except:
+		logging.error("Error sending email.")
+
+
+def send_email_process(message):
+	"""
+	Creates a new process that will send the email.
+	"""
+	from multiprocessing import Process
+
+	# It doesn't work using threading so I am using Process
+	p = Process(target=send_email, args=(message,))
+	p.daemon = True
+	p.start()
 
 
 def save_file_operation(action, address):
@@ -183,7 +218,6 @@ def save_file_operation(action, address):
 
 	elif action == 1:
 		BANNED_ADDRESSES[address] = time.time()
-		logging.debug(BANNED_ADDRESSES)
 		with open(SAVED_STATE_FILE, "w") as f:
 			json.dump(BANNED_ADDRESSES, f)
 
@@ -199,7 +233,8 @@ def check_regex(line):
 	ipv6_re = r"([0-9a-f]*:[0-9a-f:]+)"
 
 	# The 'message repeated N times...' expression should be first, otherwise the line will be matched with another expression
-	failed_re = (r"(.*message repeated (\d*) times.*Failed password.* )",
+	failed_re = (
+				r"(.*message repeated (\d*) times.*Failed password.* )",
 				r"(.*Failed password.* )",
 				r"(.*Invalid user.* )",
 				r"(.*Did not receive identification.* )",
@@ -293,6 +328,7 @@ def block_address(address):
 	logging.info("Banned address {}".format(address[2]))
 	save_file_operation(1, address[2])
 
+
 def unban_address(address):
 	"""
 	Handles the unblocking of the addresses.
@@ -329,12 +365,12 @@ def untrusted_notification(address):
 	if trusted == 0:
 		logging.info("Untrusted login from address: {}".format(address))
 		if SEND_EMAIL == 1:
-			send_email("Untrusted login from address: {}".format(address))
+			send_email_process("Untrusted login from address: {}".format(address))
 
 
 def check_bans():
 	"""
-	Checks if any bans have expired to delete them. 
+	Checks if any bans have expired to delete them.
 	"""
 	# I add to the list the unbannable addresses because I can't modify the dict during iteration
 	unbannable = list()
@@ -382,7 +418,6 @@ def main():
 						logging.debug(line)
 						logging.debug(result)
 						handle_login(result, temporary_addresses)
-						logging.debug(temporary_addresses)
 
 			line_count_initial = line_count_current
 		except Exception as e:
