@@ -95,7 +95,14 @@ def read_config():
 			logging.error("Invalid 'ban_time' in config.")
 			sys.exit(1)
 
-		if data['send_email'] == 1:
+		if data['send_email'] in [0, 1]:
+			SEND_EMAIL = data['send_email']
+		else:
+			logging.error("Invalid 'send_email' in config.")
+			sys.exit(1)
+
+
+		if SEND_EMAIL == 1:
 			if data['from_email'] != "" and isinstance(data['from_email'], str):
 				FROM_EMAIL = data['from_email']
 			else:

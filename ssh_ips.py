@@ -317,7 +317,7 @@ def main():
 			configuration["from_email"] = args.from_email
 
 		if args.from_email_pass is not None:
-			configuration["from_email_pass"] = args.from_email_pass
+			configuration["from_email_password"] = args.from_email_pass
 
 		if args.to_email is not None:
 			configuration["to_email"] = args.to_email

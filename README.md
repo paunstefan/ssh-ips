@@ -28,16 +28,17 @@ git clone https://gitlab.com/paunstefan/ssh-ips.git
 cd ssh-ips
 ````
 
-Or download an archive from this page and extract it:
+Or download an archive from this page and extract it using you sofware of choice,
+after that enter the directory:
 ````commandline
-tar xvfj ssh-ips-master.tar.gz
 cd ssh-ips-master
 ````
 
 Inside you will find the **install.sh** script that will do the installation.
 
 If your Python 3 path is **/usr/bin/python3** you can run the install without any parameters.
-Otherwise you must provide the Python 3 path.
+Otherwise you must provide the Python 3 path (or manually create a symbolic link
+to **/usr/bin/python3**).
 ````
 sudo ./install.sh [python3_path]
 ````
@@ -66,7 +67,8 @@ The firewall software that does the banning. Do not modify.
 Time in seconds the addresses are banned for. Use 0 if you want an infinite ban.
 - _send_email_ 
 
-1 if you want SSH-IPS to send you email notifications, 0 if not.
+1 if you want SSH-IPS to send you email notifications, 0 if not. For more info about making
+this feature work see 'Email' in the 'Software documentation' section below.
 - _from_email_ 
 
 Email address from which the emails are send. I recommend making an account especially for this.
@@ -93,12 +95,15 @@ A list of your trusted networks. The syntax is: `"trusted_networks": ["192.168.1
 
 After adding your configuration you can start the program. You can either use the ssh-ips CLI or systemctl:
 ````
-ssh-ips command here
+ssh_ips --start
 // or
 systemctl start ssh-ips
+````
+To make the software start at boot, enable it with systemctl:
+````
 systemctl enable ssh-ips
 ````
 
 Now everything should be up and running.
 
-## Information about the software
+## Software documentation
