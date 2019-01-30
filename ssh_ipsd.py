@@ -173,6 +173,7 @@ def read_state():
 def send_email(message):
 	"""
 	Sends notification emails to alert the user.
+	:param message: The string you want to send.
 	"""
 	import smtplib
 	try:
@@ -203,6 +204,7 @@ def send_email(message):
 def send_email_process(message):
 	"""
 	Creates a new process that will send the email.
+	:param message: The string you want to send.
 	"""
 	from multiprocessing import Process
 
@@ -215,8 +217,9 @@ def send_email_process(message):
 def save_file_operation(action, address):
 	"""
 	Writes or deletes addresses from the saved state file.
-	The action parameter can be 0 if the action is 'delete' and 1 if the action is 'write'.
 	Save format: {'address':timestamp}
+	:param action: 0 if the action is 'delete', 1 if the action is 'write'.
+	:param address: The address you want to add or remove.
 	"""
 	if action == 0:
 		BANNED_ADDRESSES.pop(address)
@@ -232,9 +235,10 @@ def save_file_operation(action, address):
 def check_regex(line):
 	"""
 	Checks the line to see if it is a failed login attempt.
-	Returns a tuple of 3 elements, 0/1/n if it was failed or not, 4/6 for the IP version and the address.
 	The failed variable becomes 2 if the matched string should be counted 2 times.
 	Example: (1, 4, "192.168.1.1") means that it was a failed attempt from the IPv4 address "192.168.1.1".
+	:param line: The line read from the auth log.
+	:return: A tuple of 3 elements, 0/1/n if it was failed or not, 4/6 for the IP version and the address.
 	"""
 	ipv4_re = r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
 	ipv6_re = r"([0-9a-f]*:[0-9a-f:]+)"
@@ -295,8 +299,8 @@ def handle_login(attempt, temp_addresses):
 	"""
 	Handles the result of the check_regex() function.
 	It modifies the temporary_addresses dictionary and can invoke the block_address() or untrusted_notification() functions.
-	attempt is the tuple returned by check_regex(); example: (1, 4, "10.10.2.1")
-	temp_addresses is a dictionary that stores addresses until they timeout or they are blocked
+	:param attempt: The tuple returned by check_regex(); example: (1, 4, "10.10.2.1")
+	:param temp_addresses: A dictionary that stores addresses until they timeout or they are blocked
 		structure: {address: [nr_attempts, timestamp],}
 	"""
 	if attempt[0] == 0 and TRUSTED_NOTIFICATION == 1:
@@ -322,7 +326,7 @@ def handle_login(attempt, temp_addresses):
 def block_address(address):
 	"""
 	Handles the blocking of the address by executing the firewall command needed.
-	It receives the address 3 element tuple.
+	:param address: 3 element tuple from the check_regex() function.
 	"""
 	if address[1] == 4:
 		if FIREWALL == "iptables":
@@ -339,7 +343,7 @@ def block_address(address):
 def unban_address(address):
 	"""
 	Handles the unblocking of the addresses.
-	It receives the address string.
+	:param address: A string with the address.
 	"""
 	version = 4
 	if ":" in address:
@@ -360,6 +364,7 @@ def unban_address(address):
 def untrusted_notification(address):
 	"""
 	It sends a notification to the user if there was a successful login from an untrusted network.
+	:param address: String with the address.
 	"""
 	trusted = 0
 	for network in TRUSTED_NETWORKS:

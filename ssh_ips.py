@@ -17,6 +17,7 @@ import time
 def read_config():
 	"""
 	Reads the configuration info into the cfg dictionary.
+	:return: A dictionary with the SSH-IPS configuration variables.
 	"""
 	CONFIG_FILE = '/etc/ssh-ips/config.json'
 	try:
@@ -32,6 +33,7 @@ def read_config():
 def unix_to_human_time(timestamp):
 	"""
 	Returns a human readable string of the unix timestamp provided.
+	:param timestamp: Unix timestamp.
 	"""
 	return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
@@ -39,6 +41,7 @@ def unix_to_human_time(timestamp):
 def banned_addresses_info(config):
 	"""
 	Prints information about the banned addresses.
+	:param config: Dictionary with the configuration variables.
 	"""
 	state_file = config['saved_state_file']
 	ban_time = 120
@@ -66,6 +69,8 @@ def unban_address(address, cfg):
 	"""
 	Unbans the address received.
 	Executes the iptables command, decrements the saved state entry by the ban time and restarts ssh_ipsd.
+	:param address: String with the address.
+	:param cfg: Dictionary with the configuration variables.
 	"""
 	with open(cfg["saved_state_file"], "r") as f:
 		banned_addresses = json.load(f)
@@ -121,6 +126,7 @@ def unban_address(address, cfg):
 def show_stats(cfg):
 	"""
 	Shows SSH-IPS statistics.
+	:param cfg: Dictionary with the configuration variables.
 	"""
 	log_file = "/var/log/ssh-ips.log"
 
@@ -186,6 +192,7 @@ def restart():
 def update_config(cfg):
 	"""
 	Updates SSH-IPS config and restarts the daemon.
+	:param cfg: Dictionary with the configuration variables.
 	"""
 	CONFIG_FILE = '/etc/ssh-ips/config.json'
 	try:
