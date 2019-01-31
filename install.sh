@@ -70,8 +70,8 @@ function install_systemd {
     # Install the executables to their location
     mkdir /usr/local/bin/ssh-ips
     cp ssh_ipsd.py /usr/local/bin/ssh-ips
-    cp ssh_ips.py /usr/local/bin/
-    mv /usr/local/bin/ssh_ips.py /usr/local/bin/ssh_ips
+    cp ssh_ips.py /usr/local/bin/ssh-ips
+    ln /usr/local/bin/ssh-ips/ssh_ips.py /usr/local/bin/ssh_ips
     chmod 774 /usr/local/bin/ssh-ips/ssh_ipsd.py
     chmod 774 /usr/local/bin/ssh_ips
     echo "Installed executables to /usr/local/bin"

@@ -13,6 +13,7 @@ systemctl disable ssh-ips
 
 rm /etc/systemd/system/ssh-ips.service
 echo "Removed unit file."
+rm /usr/local/bin/ssh_ips
 rm -r /usr/local/bin/ssh-ips
 echo "Removed executables."
 rm -r /etc/ssh-ips

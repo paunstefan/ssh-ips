@@ -217,7 +217,7 @@ def main():
 	group.add_argument("-b", "--start", action="store_true", help="Start SSH-IPS")
 	group.add_argument("-x", "--stop", action="store_true", help="Stop SSH-IPS")
 	group.add_argument("-r", "--restart", action="store_true", help="Restart SSH-IPS")
-	group.add_argument("-s", "--stats", action="store_true", help="Stop SSH-IPS")
+	group.add_argument("-s", "--stats", action="store_true", help="Show SSH-IPS statistics")
 
 	parser.add_argument('--timeout', type=int, help="timeout value")
 	parser.add_argument('--log', type=str, help="auth log file")
