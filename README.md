@@ -108,7 +108,7 @@ systemctl enable ssh-ips
 Now everything should be up and running.
 
 You can check the log file at _/var/log/ssh-ips.log_.
-###CLI
+### CLI
 SSH-IPS can be configured and controlled using the ssh_ips CLI interface.
 
 To control or get information from ssh_ipsd.py there are defined the following commands:
@@ -186,7 +186,7 @@ trusted list, you can run the following command:
 ssh_ips -c --ban_time 3600 --trusted_network_add 10.10.10.0/24
 ````
 
-###Uninstall
+### Uninstall
 If you need to uninstall SSH-IPS you first need to stop the service and disable it in systemd.
 ````commandline
 systemctl stop ssh-ips
@@ -229,7 +229,8 @@ SSH-IPS needs the following files to work.
     The logrotate config. Logrotate is a Linux utility that archives and eventually deletes
     old logs from the system.
 
-###Email
+
+### Email
 SSH-IPS can send you an email if the send_email and trusted_notification configurations are 
 both turned on. In this case, the email will be sent if there was a successful login 
 from an untrusted network.

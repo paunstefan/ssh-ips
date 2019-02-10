@@ -48,6 +48,11 @@ function check_log_file {
 
 if [ $# -eq 1 ]; then
     PYTHON_INSTALL=$1
+    if [ -f /usr/bin/python3 ]; then
+        echo "/usr/bin/python3 already exists"
+        exit 1
+    fi
+
     if [ ! -f $PYTHON_INSTALL ]; then
         echo "Interpreter not found"
         exit 1
