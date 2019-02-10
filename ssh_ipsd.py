@@ -10,6 +10,7 @@ import subprocess
 import ipaddress
 import json
 import logging
+import os.path
 
 logging.basicConfig(filename="/var/log/ssh-ips.log", filemode="a", format='%(asctime)s: %(levelname)s: %(message)s', level=logging.INFO)
 
@@ -71,7 +72,7 @@ def read_config():
 			logging.error("Invalid 'attempts_timeout' in config.")
 			sys.exit(1)
 
-		if data['auth_log_file'] != "" and isinstance(data['auth_log_file'], str):
+		if data['auth_log_file'] != "" and isinstance(data['auth_log_file'], str) and os.path.isfile(data['auth_log_file']):
 			AUTH_LOG_FILE = data['auth_log_file']
 		else:
 			logging.error("Invalid 'auth_log_file' in config.")
