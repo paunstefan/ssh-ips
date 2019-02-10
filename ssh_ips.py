@@ -137,28 +137,31 @@ def show_stats(cfg):
 		print(str(e))
 		sys.exit()
 
-	beginning_time = logs[0].split(',')[0]
-	beginning_date = beginning_time.split()[0]
-	beginning_time = time.mktime(time.strptime(beginning_time, '%Y-%m-%d %H:%M:%S'))
-	# Time difference in hours since the first entry in the log file
-	time_diff = ((time.time() - beginning_time) / 60) / 60
+	try:
+		beginning_time = logs[0].split(',')[0]
+		beginning_date = beginning_time.split()[0]
+		beginning_time = time.mktime(time.strptime(beginning_time, '%Y-%m-%d %H:%M:%S'))
+		# Time difference in hours since the first entry in the log file
+		time_diff = ((time.time() - beginning_time) / 60) / 60
 
-	ban_count = 0
-	banned_addresses = dict()
+		ban_count = 0
+		banned_addresses = dict()
 
-	for line in logs:
-		if line.split()[3] == "Banned":
-			ban_count += 1
+		for line in logs:
+			if line.split()[3] == "Banned":
+				ban_count += 1
 
-			banned_addresses.setdefault(line.split()[5], 0)
-			banned_addresses[line.split()[5]] += 1
+				banned_addresses.setdefault(line.split()[5], 0)
+				banned_addresses[line.split()[5]] += 1
 
-	sorted_bans = sorted(banned_addresses.items(), key=operator.itemgetter(1))
-	sorted_bans.reverse()
+		sorted_bans = sorted(banned_addresses.items(), key=operator.itemgetter(1))
+		sorted_bans.reverse()
 
-	print("Total bans since {}: {}".format(beginning_date, ban_count))
-	print("Bans per hour: {}".format(ban_count/time_diff))
-	print("Most banned address: {} - {} bans".format(sorted_bans[0][0], sorted_bans[0][1]))
+		print("Total bans since {}: {}".format(beginning_date, ban_count))
+		print("Bans per hour: {}".format(ban_count/time_diff))
+		print("Most banned address: {} - {} bans".format(sorted_bans[0][0], sorted_bans[0][1]))
+	except IndexError:
+		print("There are no statistics to show.")
 
 
 def start():
