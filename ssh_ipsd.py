@@ -258,28 +258,24 @@ def check_regex(line):
 	ip_version = 4
 	failed = 0
 	address = ''
+	found = 0
 
-	# I'm sure this can be done more efficient
 	for variant in failed_re:
-		expression = re.compile(variant + ipv4_re)
-		if re.match(expression, line) is not None:
-			failed = 1
-			address = expression.search(line).group(2)
+		for ip in [ipv4_re, ipv6_re]:
+			expression = re.compile(variant + ip)
 
-			if variant == r"(.*message repeated (\d*) times.*Failed password.* )":
-				address = expression.search(line).group(3)
-				failed = int(expression.search(line).group(2))
-			break
+			if re.match(expression, line) is not None:
+				failed = 1
+				if ip == ipv6_re:
+					ip_version = 6
+				address = expression.search(line).group(2)
 
-		expression = re.compile(variant + ipv6_re)
-		if re.match(expression, line) is not None:
-			failed = 1
-			ip_version = 6
-			address = expression.search(line).group(2)
-
-			if variant == r"(.*message repeated (\d*) times.*Failed password.* )":
-				address = expression.search(line).group(3)
-				failed = int(expression.search(line).group(2))
+				if variant == r"(.*message repeated (\d*) times.*Failed password.* )":
+					address = expression.search(line).group(3)
+					failed = int(expression.search(line).group(2))
+				found = 1
+				break
+		if found:
 			break
 
 	# The case in which there was no match for any failure string

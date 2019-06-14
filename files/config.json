@@ -4,7 +4,7 @@
 	"attempts_timeout": 30,
 	"saved_state_file": "/var/lib/ssh-ips/saved_state.json",
 	"firewall": "iptables",
-	"ban_time": 60,
+	"ban_time": 120,
 
 	"send_email": 0,
 	"from_email": "",
