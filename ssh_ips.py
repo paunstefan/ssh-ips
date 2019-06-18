@@ -44,7 +44,7 @@ def banned_addresses_info(config):
 	:param config: Dictionary with the configuration variables.
 	"""
 	state_file = config['saved_state_file']
-	ban_time = 120
+	ban_time = int(config['ban_time'])
 
 	try:
 		with open(state_file, "r") as f:
@@ -123,10 +123,9 @@ def unban_address(address, cfg):
 
 
 
-def show_stats(cfg):
+def show_stats():
 	"""
 	Shows SSH-IPS statistics.
-	:param cfg: Dictionary with the configuration variables.
 	"""
 	log_file = "/var/log/ssh-ips.log"
 
@@ -258,7 +257,7 @@ def main():
 		if arg_number != 2:
 			parser.print_help()
 			sys.exit(1)
-		show_stats(configuration)
+		show_stats()
 
 	if args.unban is not None:
 		if arg_number != 3:
